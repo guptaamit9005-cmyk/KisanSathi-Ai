@@ -1,3 +1,4 @@
+
 from pathlib import Path
 import os
 
@@ -15,9 +16,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ENVIRONMENT VARIABLES
 # ============================================================
 
-# Loads:
-# AgriVisionAi-main/.env
-
 load_dotenv(BASE_DIR / ".env")
 
 
@@ -32,10 +30,46 @@ SECRET_KEY = os.getenv(
 
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
+
+# Render hostname and local development hosts
 ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
+    host.strip()
+    for host in os.getenv(
+        "ALLOWED_HOSTS",
+        "127.0.0.1,localhost"
+    ).split(",")
+    if host.strip()
 ]
+
+
+# Vercel frontend and other trusted origins
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "CSRF_TRUSTED_ORIGINS",
+        "https://final-kisan-sathi-ai.vercel.app"
+    ).split(",")
+    if origin.strip()
+]
+
+
+# Render runs behind a proxy
+SECURE_PROXY_SSL_HEADER = (
+    "HTTP_X_FORWARDED_PROTO",
+    "https"
+)
+
+
+# Production security settings
+SECURE_SSL_REDIRECT = not DEBUG
+
+SESSION_COOKIE_SECURE = not DEBUG
+
+CSRF_COOKIE_SECURE = not DEBUG
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+X_FRAME_OPTIONS = "DENY"
 
 
 # ============================================================
@@ -69,6 +103,7 @@ INSTALLED_APPS = [
     "soil_prediction",
     "model_training",
 ]
+
 
 # ============================================================
 # MIDDLEWARE
@@ -170,6 +205,12 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": (
             "django.contrib.auth.password_validation."
+            "CommonPasswordValidator"
+        ),
+    },
+    {
+        "NAME": (
+            "django.contrib.auth.password_validation."
             "NumericPasswordValidator"
         ),
     },
@@ -230,17 +271,6 @@ LOGOUT_REDIRECT_URL = "/"
 
 
 # ============================================================
-# DEVELOPMENT SECURITY SETTINGS
-# ============================================================
-
-SECURE_SSL_REDIRECT = False
-
-SESSION_COOKIE_SECURE = False
-
-CSRF_COOKIE_SECURE = False
-
-
-# ============================================================
 # OPENWEATHER API
 # ============================================================
 
@@ -253,7 +283,6 @@ OPENWEATHER_API_KEY = os.getenv(
 # ============================================================
 # OPTIONAL AI API KEYS
 # ============================================================
-# Keep these empty unless you actually configure them in .env
 
 GEMINI_API_KEY = os.getenv(
     "GEMINI_API_KEY",
